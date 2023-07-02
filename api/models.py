@@ -1,4 +1,5 @@
 from datetime import date
+
 from django.db import models
 
 
@@ -11,4 +12,3 @@ class Book(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     genre = models.CharField(max_length=255)
     publication_date = models.DateField(default=date.today)
-
