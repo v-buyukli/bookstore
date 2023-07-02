@@ -7,7 +7,7 @@ from .models import Author, Book
 
 
 def index(request):
-    return HttpResponse('API')
+    return HttpResponse('bookstore_api')
 
 
 class BooksView(View):
