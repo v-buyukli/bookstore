@@ -42,7 +42,6 @@ def api_client():
                 return {
                     "name": "test_n",
                 }
-
     return APIClient()
 
 
@@ -98,7 +97,6 @@ def test_get_all_authors(api_client):
     url = reverse("authors")
     response = api_client.get(url)
     authors = response.json(url)
-
     assert response.response.status_code == 200
     assert authors["name"] == "test_n"
 
@@ -107,6 +105,5 @@ def test_get_author_by_id(api_client):
     url = reverse("author", args=[0])
     response = api_client.get(url)
     author = response.json(url)
-
     assert response.response.status_code == 200
     assert author["name"] == "test_n"
