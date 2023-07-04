@@ -13,7 +13,6 @@ import os
 from pathlib import Path
 
 import dj_database_url
-import environ
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -66,7 +65,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "bookstore.urls"
@@ -93,22 +92,8 @@ WSGI_APPLICATION = "bookstore.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if IS_HEROKU_APP:
-    DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}
-else:
-    env = environ.Env()
-    environ.Env.read_env(".env")
-
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("POSTGRES_NAME"),
-            "USER": env("POSTGRES_USER"),
-            "PASSWORD": env("POSTGRES_PASSWORD"),
-            "HOST": env("POSTGRES_HOST"),
-            "PORT": env("POSTGRES_PORT"),
-        }
-    }
+# if IS_HEROKU_APP:
+DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}
 
 
 # Password validation
