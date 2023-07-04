@@ -47,6 +47,7 @@ def api_client():
                 return {
                     author_fields[2].name: "test_n",
                 }
+
     return APIClient()
 
 
