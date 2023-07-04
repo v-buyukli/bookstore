@@ -3,6 +3,8 @@ from unittest.mock import MagicMock
 import pytest
 from django.urls import reverse
 
+from api.models import Author, Book
+
 
 @pytest.fixture
 def api_client():
@@ -31,27 +33,29 @@ def api_client():
             return self
 
         def json(self, url):
+            author_fields = Author._meta.get_fields()
+            book_fields = Book._meta.get_fields()
+
             if "books" in url:
                 return {
-                    "title": "test_b",
-                    "author": "test_a",
-                    "genre": "test_g",
-                    "publication_date": "2023-07-02",
+                    book_fields[1].name: "test_b",
+                    book_fields[2].name: "test_a",
+                    book_fields[3].name: "test_g",
+                    book_fields[4].name: "2023-07-02",
                 }
             elif "authors" in url:
                 return {
-                    "name": "test_n",
+                    author_fields[2].name: "test_n",
                 }
-
     return APIClient()
 
 
 def test_get_all_books(api_client):
     url = reverse("books")
     response = api_client.get(url)
-    books = response.json(url)
-
     assert response.response.status_code == 200
+
+    books = response.json(url)
     assert books["title"] == "test_b"
     assert books["author"] == "test_a"
     assert books["genre"] == "test_g"
@@ -61,9 +65,9 @@ def test_get_all_books(api_client):
 def test_get_book_by_id(api_client):
     url = reverse("book", args=[0])
     response = api_client.get(url)
-    book = response.json(url)
-
     assert response.response.status_code == 200
+
+    book = response.json(url)
     assert book["title"] == "test_b"
     assert book["author"] == "test_a"
     assert book["genre"] == "test_g"
@@ -97,16 +101,14 @@ def test_delete_book(api_client):
 def test_get_all_authors(api_client):
     url = reverse("authors")
     response = api_client.get(url)
-    authors = response.json(url)
-
     assert response.response.status_code == 200
+    authors = response.json(url)
     assert authors["name"] == "test_n"
 
 
 def test_get_author_by_id(api_client):
     url = reverse("author", args=[0])
     response = api_client.get(url)
-    author = response.json(url)
-
     assert response.response.status_code == 200
+    author = response.json(url)
     assert author["name"] == "test_n"
