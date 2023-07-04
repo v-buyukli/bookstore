@@ -47,8 +47,8 @@ def test_create_book(book_data):
 
 
 def test_update_book(book_data):
-    response = requests.post(f'{BASE_URL}/books', json=book_data)
-    book_id = response.json().get('id')
+    response = requests.get(f'{BASE_URL}/books')
+    book_id = response.json()[-1]['id']
 
     updated_data = {
         'title': 'updated_book',
