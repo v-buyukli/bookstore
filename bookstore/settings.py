@@ -99,17 +99,22 @@ else:
     env = environ.Env()
     environ.Env.read_env(".env")
 
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": env("POSTGRES_NAME"),
-            "USER": env("POSTGRES_USER"),
-            "PASSWORD": env("POSTGRES_PASSWORD"),
-            "HOST": env("POSTGRES_HOST"),
-            "PORT": env("POSTGRES_PORT"),
-        }
-    }
+    if IS_HEROKU_APP:
+        DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}
+    else:
+        env = environ.Env()
+        environ.Env.read_env(".env")
 
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": env("POSTGRES_NAME"),
+                "USER": env("POSTGRES_USER"),
+                "PASSWORD": env("POSTGRES_PASSWORD"),
+                "HOST": env("POSTGRES_HOST"),
+                "PORT": env("POSTGRES_PORT"),
+            }
+        }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
