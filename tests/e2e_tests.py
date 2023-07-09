@@ -4,13 +4,14 @@ import pytest
 import requests
 
 
-BASE_URL = os.getenv("API_URL", "http://127.0.0.1:8000/api")
+BASE_URL = os.getenv("API_URL", "https://bookcstore-p-caching-coebpzxhw.herokuapp.com/api")
+# BASE_URL = os.getenv("API_URL", "http://127.0.0.1:8000/api")
 
 
 @pytest.fixture
 def book_data():
     return {
-        "title": "book1",
+        "title": "test_book",
         "author": "author1",
         "genre": "genre1",
         "publication_date": "2020-07-07",
@@ -25,18 +26,6 @@ def created_book(book_data):
     requests.delete(f"{BASE_URL}/books/{book_id}")
 
 
-def test_get_all_books():
-    response = requests.get(f"{BASE_URL}/books")
-    assert response.status_code == 200
-    assert "test_book" in response.text
-
-
-def test_get_book_by_id():
-    response = requests.get(f"{BASE_URL}/books/1")
-    assert response.status_code == 200
-    assert "test_book" in response.text
-
-
 def test_create_book(created_book):
     response = created_book
     assert response.status_code == 201
@@ -48,10 +37,22 @@ def test_create_book(created_book):
     response_body = response.json()
 
     assert response.status_code == 200
-    assert response_body["title"] == "book1"
+    assert response_body["title"] == "test_book"
     assert response_body["author"] == "author1"
     assert response_body["genre"] == "genre1"
     assert response_body["publication_date"] == "2020-07-07"
+
+
+def test_get_all_books():
+    response = requests.get(f"{BASE_URL}/books")
+    assert response.status_code == 200
+    assert "test_book" in response.text
+
+
+def test_get_book_by_id():
+    response = requests.get(f"{BASE_URL}/books/1")
+    assert response.status_code == 200
+    assert "test_book" in response.text
 
 
 def test_update_book(created_book):
