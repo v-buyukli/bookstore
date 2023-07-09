@@ -151,7 +151,6 @@ class AuthorsView(APIView):
         if request.GET:
             params = {"name"}
             check_params(request.GET.keys(), params)
-
             queryset = Author.objects.all()
             name = request.GET.get("name")
 
@@ -168,8 +167,15 @@ class AuthorsView(APIView):
                 return JsonResponse(
                     {"msg": "no authors yet"}, status=status.HTTP_200_OK
                 )
-        serializer = AuthorSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        authors = [
+            {
+                "id": author.id,
+                "name": author.name,
+            }
+            for author in queryset
+        ]
+        return Response(authors, status=status.HTTP_200_OK)
 
 
 class AuthorView(APIView):
