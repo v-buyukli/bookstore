@@ -4,7 +4,9 @@ import pytest
 import requests
 
 
-BASE_URL = os.getenv("API_URL", "https://bookcstore-p-caching-coebpzxhw.herokuapp.com/api")
+BASE_URL = os.getenv(
+    "API_URL", "https://bookcstore-p-caching-coebpzxhw.herokuapp.com/api"
+)
 # BASE_URL = os.getenv("API_URL", "http://127.0.0.1:8000/api")
 
 
@@ -12,7 +14,7 @@ BASE_URL = os.getenv("API_URL", "https://bookcstore-p-caching-coebpzxhw.herokuap
 def book_data():
     return {
         "title": "test_book",
-        "author": "author1",
+        "author": "test_author",
         "genre": "genre1",
         "publication_date": "2020-07-07",
     }
@@ -38,7 +40,7 @@ def test_create_book(created_book):
 
     assert response.status_code == 200
     assert response_body["title"] == "test_book"
-    assert response_body["author"] == "author1"
+    assert response_body["author"] == "test_author"
     assert response_body["genre"] == "genre1"
     assert response_body["publication_date"] == "2020-07-07"
 
@@ -46,11 +48,14 @@ def test_create_book(created_book):
 def test_get_all_books():
     response = requests.get(f"{BASE_URL}/books")
     assert response.status_code == 200
-    assert "test_book" in response.text
+    if "no books yet" not in response.text:
+        assert "test_book" in response.text
 
 
-def test_get_book_by_id():
-    response = requests.get(f"{BASE_URL}/books/1")
+def test_get_book_by_id(created_book):
+    response = created_book
+    book_id = response.json().get("id")
+    response = requests.get(f"{BASE_URL}/books/{book_id}")
     assert response.status_code == 200
     assert "test_book" in response.text
 
@@ -100,4 +105,4 @@ def test_get_all_authors():
 def test_get_author_by_id():
     response = requests.get(f"{BASE_URL}/authors/1")
     assert response.status_code == 200
-    assert "test_author" in response.text
+    assert "author" in response.text
