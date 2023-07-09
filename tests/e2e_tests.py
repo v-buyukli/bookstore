@@ -4,7 +4,8 @@ import pytest
 import requests
 
 
-BASE_URL = os.getenv("API_URL", "https://bookstore0-80ca638e1301.herokuapp.com/api")
+# BASE_URL = os.getenv("API_URL", "https://bookstore0-80ca638e1301.herokuapp.com/api")
+BASE_URL = os.getenv("API_URL", "http://127.0.0.1:8000/api")
 
 
 @pytest.fixture
@@ -15,6 +16,14 @@ def book_data():
         "genre": "genre1",
         "publication_date": "2020-07-07",
     }
+
+
+@pytest.fixture
+def created_book(book_data):
+    response = requests.post(f"{BASE_URL}/books", json=book_data)
+    yield response
+    book_id = response.json().get("id")
+    requests.delete(f"{BASE_URL}/books/{book_id}")
 
 
 def test_get_all_books():
@@ -29,8 +38,8 @@ def test_get_book_by_id():
     assert "test_book" in response.text
 
 
-def test_create_book(book_data):
-    response = requests.post(f"{BASE_URL}/books", json=book_data)
+def test_create_book(created_book):
+    response = created_book
     assert response.status_code == 201
 
     book_id = response.json().get("id")
@@ -46,9 +55,9 @@ def test_create_book(book_data):
     assert response_body["publication_date"] == "2020-07-07"
 
 
-def test_update_book(book_data):
-    response = requests.get(f"{BASE_URL}/books")
-    book_id = response.json()[-1]["id"]
+def test_update_book(created_book):
+    response = created_book
+    book_id = response.json().get("id")
 
     updated_data = {
         "title": "updated_book",
@@ -70,8 +79,8 @@ def test_update_book(book_data):
     assert response_body["publication_date"] == updated_data["publication_date"]
 
 
-def test_delete_book(book_data):
-    response = requests.post(f"{BASE_URL}/books", json=book_data)
+def test_delete_book(created_book):
+    response = created_book
     book_id = response.json().get("id")
 
     response = requests.delete(f"{BASE_URL}/books/{book_id}")
@@ -84,13 +93,11 @@ def test_delete_book(book_data):
 
 def test_get_all_authors():
     response = requests.get(f"{BASE_URL}/authors")
-
     assert response.status_code == 200
     assert "test_author" in response.text
 
 
 def test_get_author_by_id():
     response = requests.get(f"{BASE_URL}/authors/1")
-
     assert response.status_code == 200
     assert "test_author" in response.text
