@@ -13,15 +13,19 @@ def index(request):
     return HttpResponse("bookstore_api")
 
 
+def check_params(request_info, params):
+    if not set(request_info).issubset(params):
+        return JsonResponse(
+            {"error": "invalid query params"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
 class BooksView(APIView):
     def get(self, request):
         if request.GET:
             params = {"title", "author", "genre"}
-            if not set(request.GET.keys()).issubset(params):
-                return JsonResponse(
-                    {"error": "invalid query params"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            check_params(request.GET.keys(), params)
 
             queryset = Book.objects.all()
             title = request.GET.get("title")
@@ -44,25 +48,24 @@ class BooksView(APIView):
             if not queryset:
                 return JsonResponse({"msg": "no books yet"}, status=status.HTTP_200_OK)
 
-        books = []
-        for book in queryset:
-            books.append(
-                {
-                    "id": book.id,
-                    "title": book.title,
-                    "author": book.author.name,
-                    "genre": book.genre,
-                    "publication_date": book.publication_date,
-                }
-            )
+        books = [
+            {
+                "id": book.id,
+                "title": book.title,
+                "author": book.author.name,
+                "genre": book.genre,
+                "publication_date": book.publication_date,
+            }
+            for book in queryset
+        ]
         return Response(books, status=status.HTTP_200_OK)
 
     def post(self, request):
-        author_serializer = AuthorSerializer(data=request.data)
         book_serializer = BookSerializer(data=request.data)
-        author_serializer.is_valid(raise_exception=True)
         book_serializer.is_valid(raise_exception=True)
 
+        author_serializer = AuthorSerializer(data=request.data)
+        author_serializer.is_valid(raise_exception=True)
         author_name = author_serializer.validated_data.get("author")
         author, created = Author.objects.get_or_create(name=author_name)
 
@@ -74,7 +77,6 @@ class BooksView(APIView):
                 "publication_date", date.today()
             ),
         )
-
         return JsonResponse(
             {"id": book.id, "msg": "book added successfully"},
             status=status.HTTP_201_CREATED,
@@ -101,13 +103,12 @@ class BookView(APIView):
     def put(self, request, id):
         try:
             params = {"title", "author", "genre", "publication_date"}
-            if not set(request.body.keys()).issubset(params):
-                return JsonResponse({"error": "invalid query params"}, status=400)
+            check_params(request.body.keys(), params)
 
             book_serializer = BookSerializer(data=request.data)
             book_serializer.is_valid(raise_exception=True)
-
             book = Book.objects.get(id=id)
+
             if "title" in request.body:
                 book.title = book_serializer.validated_data["title"]
             if "author" in request.body:
@@ -148,9 +149,12 @@ class BookView(APIView):
 class AuthorsView(APIView):
     def get(self, request):
         if request.GET:
-            queryset = Author.objects.all()
+            params = {"name"}
+            check_params(request.GET.keys(), params)
 
+            queryset = Author.objects.all()
             name = request.GET.get("name")
+
             if name:
                 queryset = queryset.filter(name__icontains=name)
             if not queryset.exists():
@@ -160,21 +164,12 @@ class AuthorsView(APIView):
                 )
         else:
             queryset = Author.objects.all()
-
             if not queryset:
                 return JsonResponse(
                     {"msg": "no authors yet"}, status=status.HTTP_200_OK
                 )
-
-        authors = []
-        for author in queryset:
-            authors.append(
-                {
-                    "id": author.id,
-                    "name": author.name,
-                }
-            )
-        return Response(authors, status=status.HTTP_200_OK)
+        serializer = AuthorSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AuthorView(APIView):
