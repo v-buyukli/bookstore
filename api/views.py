@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Author, Book
-from .serializers import BookSerializer
+from .serializers import AuthorSerializer, BookSerializer
 
 
 def index(request):
@@ -58,20 +58,23 @@ class BooksView(APIView):
         return Response(books, status=status.HTTP_200_OK)
 
     def post(self, request):
-        serializer = BookSerializer(data=request.data)
-        if not serializer.is_valid():
-            return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        author_name = serializer.validated_data.get("author")
+        author_serializer = AuthorSerializer(data=request.data)
+        book_serializer = BookSerializer(data=request.data)
+        author_serializer.is_valid(raise_exception=True)
+        book_serializer.is_valid(raise_exception=True)
+
+        author_name = author_serializer.validated_data.get("author")
         author, created = Author.objects.get_or_create(name=author_name)
 
         book = Book.objects.create(
-            title=serializer.validated_data["title"],
+            title=book_serializer.validated_data["title"],
             author=author,
-            genre=serializer.validated_data["genre"],
-            publication_date=serializer.validated_data.get(
+            genre=book_serializer.validated_data["genre"],
+            publication_date=book_serializer.validated_data.get(
                 "publication_date", date.today()
             ),
         )
+
         return JsonResponse(
             {"id": book.id, "msg": "book added successfully"},
             status=status.HTTP_201_CREATED,
@@ -97,20 +100,30 @@ class BookView(APIView):
 
     def put(self, request, id):
         try:
-            book = Book.objects.get(id=id)
+            params = {"title", "author", "genre", "publication_date"}
+            if not set(request.body.keys()).issubset(params):
+                return JsonResponse({"error": "invalid query params"}, status=400)
 
-            serializer = BookSerializer(book, data=request.data, partial=True)
-            if not serializer.is_valid():
-                return JsonResponse(
-                    serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            book_serializer = BookSerializer(data=request.data)
+            book_serializer.is_valid(raise_exception=True)
+
+            book = Book.objects.get(id=id)
+            if "title" in request.body:
+                book.title = book_serializer.validated_data["title"]
+            if "author" in request.body:
+                author_serializer = AuthorSerializer(data=request.data)
+                author_serializer.is_valid(raise_exception=True)
+                author_name = author_serializer.validated_data.get("author")
+                author, created = Author.objects.get_or_create(name=author_name)
+                book.author = author
+            if "genre" in request.body:
+                book.genre = book_serializer.validated_data["genre"]
+            if "publication_date" in request.body:
+                book.publication_date = book_serializer.validated_data.get(
+                    "publication_date", date.today()
                 )
 
-            author_name = serializer.validated_data.get("author")
-            if author_name:
-                author, created = Author.objects.get_or_create(name=author_name)
-                serializer.validated_data["author"] = author
-
-            serializer.save()
+            book.save()
             return JsonResponse(
                 {"msg": "book updated successfully"}, status=status.HTTP_200_OK
             )
@@ -136,6 +149,7 @@ class AuthorsView(APIView):
     def get(self, request):
         if request.GET:
             queryset = Author.objects.all()
+
             name = request.GET.get("name")
             if name:
                 queryset = queryset.filter(name__icontains=name)
@@ -146,6 +160,7 @@ class AuthorsView(APIView):
                 )
         else:
             queryset = Author.objects.all()
+
             if not queryset:
                 return JsonResponse(
                     {"msg": "no authors yet"}, status=status.HTTP_200_OK
