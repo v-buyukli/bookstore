@@ -13,19 +13,15 @@ def index(request):
     return HttpResponse("bookstore_api")
 
 
-def check_params(request_info, params):
-    if not set(request_info).issubset(params):
-        return JsonResponse(
-            {"error": "invalid query params"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-
 class BooksView(APIView):
     def get(self, request):
         if request.GET:
             params = {"title", "author", "genre"}
-            check_params(request.GET.keys(), params)
+            if not set(request.GET.keys()).issubset(params):
+                return JsonResponse(
+                    {"error": "invalid query params"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             queryset = Book.objects.all()
             title = request.GET.get("title")
@@ -103,7 +99,11 @@ class BookView(APIView):
     def put(self, request, id):
         try:
             params = {"title", "author", "genre", "publication_date"}
-            check_params(request.body.keys(), params)
+            if not set(request.body.keys()).issubset(params):
+                return JsonResponse(
+                    {"error": "invalid query params"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             book_serializer = BookSerializer(data=request.data)
             book_serializer.is_valid(raise_exception=True)
@@ -150,7 +150,12 @@ class AuthorsView(APIView):
     def get(self, request):
         if request.GET:
             params = {"name"}
-            check_params(request.GET.keys(), params)
+            if not set(request.GET.keys()).issubset(params):
+                return JsonResponse(
+                    {"error": "invalid query params"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             queryset = Author.objects.all()
             name = request.GET.get("name")
 
