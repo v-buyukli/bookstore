@@ -2,7 +2,9 @@ import json
 from datetime import date
 
 from django.http import HttpResponse, JsonResponse
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,6 +18,7 @@ def index(request):
 
 
 class BooksView(APIView):
+    @method_decorator(cache_page(60 * 15))
     def get(self, request):
         params = {"title", "author", "genre"}
         if not set(request.GET.keys()).issubset(params):
@@ -68,6 +71,7 @@ class BooksView(APIView):
 
 
 class BookView(View):
+    @method_decorator(cache_page(60 * 15))
     def get(self, request, id):
         try:
             book = Book.objects.get(id=id)
@@ -142,6 +146,7 @@ class BookView(View):
 
 
 class AuthorsView(APIView):
+    @method_decorator(cache_page(60 * 15))
     def get(self, request):
         params = {"name"}
         if not set(request.GET.keys()).issubset(params):
@@ -169,6 +174,7 @@ class AuthorsView(APIView):
 
 
 class AuthorView(APIView):
+    @method_decorator(cache_page(60 * 15))
     def get(self, request, id):
         try:
             author = Author.objects.get(id=id)
