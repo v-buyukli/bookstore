@@ -4,9 +4,7 @@ import pytest
 import requests
 
 
-BASE_URL = os.getenv(
-    "API_URL", "https://bookcstore-p-caching-coebpzxhw.herokuapp.com/api"
-)
+BASE_URL = os.getenv("API_URL", "https://bookstore0-80ca638e1301.herokuapp.com/api")
 
 
 @pytest.fixture
