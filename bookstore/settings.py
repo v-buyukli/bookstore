@@ -43,6 +43,7 @@ if IS_HEROKU_APP:
     ALLOWED_HOSTS = ["*"]
 else:
     ALLOWED_HOSTS = []
+    ALLOWED_HOSTS.append("0.0.0.0")
 
 
 # Application definition
