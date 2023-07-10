@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+import environ
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -95,6 +96,28 @@ WSGI_APPLICATION = "bookstore.wsgi.application"
 
 if IS_HEROKU_APP:
     DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}
+
+    servers = os.environ["MEMCACHIER_SERVERS"]
+    username = os.environ["MEMCACHIER_USERNAME"]
+    password = os.environ["MEMCACHIER_PASSWORD"]
+elif "vktr" in os.environ["PATH"]:
+    env = environ.Env()
+    environ.Env.read_env(".env")
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("POSTGRES_NAME"),
+            "USER": env("POSTGRES_USER"),
+            "PASSWORD": env("POSTGRES_PASSWORD"),
+            "HOST": env("POSTGRES_HOST"),
+            "PORT": env("POSTGRES_PORT"),
+        }
+    }
+
+    servers = env("MEMCACHIER_SERVERS")
+    username = env("MEMCACHIER_USERNAME")
+    password = env("MEMCACHIER_PASSWORD")
 else:
     DATABASES = {
         "default": {
@@ -107,6 +130,9 @@ else:
         }
     }
 
+    servers = os.environ["MEMCACHIER_SERVERS"]
+    username = os.environ["MEMCACHIER_USERNAME"]
+    password = os.environ["MEMCACHIER_PASSWORD"]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -152,9 +178,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-servers = os.environ["MEMCACHIER_SERVERS"]
-username = os.environ["MEMCACHIER_USERNAME"]
-password = os.environ["MEMCACHIER_PASSWORD"]
 
 CACHES = {
     "default": {
