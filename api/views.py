@@ -3,13 +3,6 @@ from datetime import date
 
 from django.http import HttpResponse, JsonResponse
 from django.views import View
-
-from .models import Author, Book
-
-
-from datetime import date
-
-from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -29,21 +22,21 @@ class BooksView(APIView):
             return JsonResponse(
                 {"error": "invalid query params"}, status=status.HTTP_400_BAD_REQUEST
             )
+        else:
+            queryset = Book.objects.all()
+            if not queryset.exists():
+                return JsonResponse({"msg": "no books yet"}, status=status.HTTP_200_OK)
 
-        queryset = Book.objects.all()
         title = request.GET.get("title")
         author = request.GET.get("author")
         genre = request.GET.get("genre")
 
-        if not queryset.exists():
-            return JsonResponse({"msg": "no books yet"}, status=status.HTTP_200_OK)
         if title:
             queryset = queryset.filter(title__icontains=title)
         if author:
             queryset = queryset.filter(author__name__icontains=author)
         if genre:
             queryset = queryset.filter(genre__icontains=genre)
-
         if not queryset.exists():
             return JsonResponse(
                 {"msg": "no books found by filters"}, status=status.HTTP_404_NOT_FOUND
@@ -58,9 +51,7 @@ class BooksView(APIView):
             return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         author_name = serializer.validated_data.pop("author")
-        author, _ = Author.objects.get_or_create(
-            name=author_name["name"]
-        )
+        author, _ = Author.objects.get_or_create(name=author_name["name"])
 
         book = Book.objects.create(
             title=serializer.validated_data["title"],
@@ -89,7 +80,9 @@ class BookView(View):
             }
             return JsonResponse(book_data)
         except Book.DoesNotExist:
-            return JsonResponse({"error": "book not found"}, status=404)
+            return JsonResponse(
+                {"error": "book not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def put(self, request, id):
         try:
@@ -97,11 +90,16 @@ class BookView(View):
             try:
                 request_body = json.loads(request.body)
             except ValueError:
-                return JsonResponse({"error": "invalid json"}, status=400)
+                return JsonResponse(
+                    {"error": "invalid json"}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             params = {"title", "author", "genre", "publication_date"}
             if not set(request_body.keys()).issubset(params):
-                return JsonResponse({"error": "invalid query params"}, status=400)
+                return JsonResponse(
+                    {"error": "invalid query params"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             if "title" in request_body:
                 book.title = request_body["title"]
@@ -116,58 +114,67 @@ class BookView(View):
                     date.fromisoformat(request_body["publication_date"])
                 except ValueError:
                     return JsonResponse(
-                        {"error": "date should be yyyy-mm-dd"}, status=400
+                        {"error": "date should be yyyy-mm-dd"},
+                        status=status.HTTP_400_BAD_REQUEST,
                     )
                 book.publication_date = request_body["publication_date"]
+
             book.save()
-            return JsonResponse({"msg": "book updated successfully"}, status=200)
+            return JsonResponse(
+                {"msg": "book updated successfully"}, status=status.HTTP_200_OK
+            )
         except Book.DoesNotExist:
-            return JsonResponse({"error": "book not found"}, status=404)
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            return JsonResponse(
+                {"error": "book not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
     def delete(self, request, id):
         try:
             book = Book.objects.get(id=id)
             book.delete()
-            return JsonResponse({"msg": "book deleted successfully"}, status=200)
+            return JsonResponse(
+                {"msg": "book deleted successfully"}, status=status.HTTP_200_OK
+            )
         except Book.DoesNotExist:
-            return JsonResponse({"error": "book not found"}, status=404)
+            return JsonResponse(
+                {"error": "book not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
-class AuthorsView(View):
+class AuthorsView(APIView):
     def get(self, request):
-        if request.GET:
-            params = {"name"}
-            if not set(request.GET.keys()).issubset(params):
-                return JsonResponse({"error": "invalid query params"}, status=400)
-            queryset = Author.objects.all()
-            name = request.GET.get("name")
-            if name:
-                queryset = queryset.filter(name__icontains=name)
-            if not queryset:
-                return JsonResponse({"msg": "no authors found by filters"}, status=404)
+        params = {"name"}
+        if not set(request.GET.keys()).issubset(params):
+            return JsonResponse(
+                {"error": "invalid query params"}, status=status.HTTP_400_BAD_REQUEST
+            )
         else:
             queryset = Author.objects.all()
-            if not queryset:
-                return JsonResponse({"msg": "no authors yet"}, status=200)
+            if not queryset.exists():
+                return JsonResponse(
+                    {"msg": "no authors yet"}, status=status.HTTP_200_OK
+                )
 
-        authors = []
-        for author in queryset:
-            authors.append(
-                {
-                    "id": author.id,
-                    "name": author.name,
-                }
+        name = request.GET.get("name")
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+
+        if not queryset.exists():
+            return JsonResponse(
+                {"msg": "no authors found by filters"},
+                status=status.HTTP_404_NOT_FOUND,
             )
-        return JsonResponse(authors, safe=False, status=200)
+        serializer = AuthorSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class AuthorView(View):
+class AuthorView(APIView):
     def get(self, request, id):
         try:
             author = Author.objects.get(id=id)
-            author_data = {"id": author.id, "name": author.name}
-            return JsonResponse(author_data)
+            serializer = AuthorSerializer(author)
+            return Response(serializer.data)
         except Author.DoesNotExist:
-            return JsonResponse({"error": "author not found"}, status=404)
+            return JsonResponse(
+                {"error": "author not found"}, status=status.HTTP_404_NOT_FOUND
+            )
