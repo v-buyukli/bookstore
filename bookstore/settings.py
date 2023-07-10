@@ -93,8 +93,19 @@ WSGI_APPLICATION = "bookstore.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# if IS_HEROKU_APP:
-DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}
+if IS_HEROKU_APP:
+    DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ["POSTGRES_NAME"],
+            "USER": os.environ["POSTGRES_USER"],
+            "PASSWORD": os.environ["POSTGRES_PASSWORD"],
+            "HOST": os.environ["POSTGRES_HOST"],
+            "PORT": os.environ["POSTGRES_PORT"],
+        }
+    }
 
 
 # Password validation
@@ -140,3 +151,23 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+servers = os.environ["MEMCACHIER_SERVERS"]
+username = os.environ["MEMCACHIER_USERNAME"]
+password = os.environ["MEMCACHIER_PASSWORD"]
+
+CACHES = {
+    "default": {
+        # Use django-bmemcached
+        "BACKEND": "django_bmemcached.memcached.BMemcached",
+        # TIMEOUT is not the connection timeout! It's the default expiration
+        # timeout that should be applied to keys! Setting it to `None`
+        # disables expiration.
+        "TIMEOUT": None,
+        "LOCATION": servers,
+        "OPTIONS": {
+            "username": username,
+            "password": password,
+        },
+    }
+}

@@ -1,13 +1,17 @@
-from datetime import date
-
 from rest_framework import serializers
 
-
-class AuthorSerializer(serializers.Serializer):
-    author = serializers.CharField(max_length=255)
+from .models import Author, Book
 
 
-class BookSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=255)
-    genre = serializers.CharField(max_length=255)
-    publication_date = serializers.DateField(default=date.today)
+class AuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Author
+        fields = ("id", "name")
+
+
+class BookSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source="author.name")
+
+    class Meta:
+        model = Book
+        fields = ("id", "title", "genre", "author", "publication_date")
