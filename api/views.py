@@ -1,16 +1,69 @@
 import json
 from datetime import date
+from functools import wraps
 
+import jwt
 from django.http import HttpResponse, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.cache import cache_page
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def public(request):
+    return JsonResponse(
+        {
+            "message": "Hello from a public endpoint! You don't need to be authenticated to see this."
+        }
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def private(request):
+    return JsonResponse(
+        {
+            "message": "Hello from a private endpoint! You need to be authenticated to see this."
+        }
+    )
+
+
+def get_token_auth_header(request):
+    auth = request.META.get("HTTP_AUTHORIZATION", "None")
+    parts = auth.split()
+    token = parts[1]
+    return token
+
+
+def requires_scope(required_scope):
+    def require_scope(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            token = get_token_auth_header(args[0])
+            decoded = jwt.decode(token, verify=False)
+            if decoded.get("scope"):
+                token_scopes = decoded["scope"].split()
+                for token_scope in token_scopes:
+                    if token_scope == required_scope:
+                        return f(*args, **kwargs)
+            response = JsonResponse(
+                {"message": "You don't have access to this resource"}
+            )
+            response.status_code = 403
+            return response
+
+        return decorated
+
+    return require_scope
 
 
 def index(request):
@@ -20,6 +73,7 @@ def index(request):
 class BooksView(APIView):
     @method_decorator(cache_page(60 * 15))
     def get(self, request):
+        self.permission_classes = [AllowAny]
         params = {"title", "author", "genre"}
         if not set(request.GET.keys()).issubset(params):
             return JsonResponse(

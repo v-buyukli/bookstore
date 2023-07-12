@@ -44,6 +44,7 @@ if IS_HEROKU_APP:
 else:
     ALLOWED_HOSTS = []
     ALLOWED_HOSTS.append("0.0.0.0")
+    ALLOWED_HOSTS.append("127.0.0.1")
 
 
 # Application definition
@@ -69,6 +70,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    "django.contrib.auth.middleware.RemoteUserMiddleware",
 ]
 
 ROOT_URLCONF = "bookstore.urls"
@@ -194,4 +196,28 @@ CACHES = {
             "password": password,
         },
     }
+}
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "django.contrib.auth.backends.RemoteUserBackend",
+]
+
+REST_FRAMEWORK = {
+    # "DEFAULT_PERMISSION_CLASSES": "rest_framework.permissions.IsAuthenticated",
+    "DEFAULT_PERMISSION_CLASSES": "rest_framework.permissions.AllowAny",
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+    ),
+}
+
+JWT_AUTH = {
+    "JWT_PAYLOAD_GET_USERNAME_HANDLER": "api.utils.jwt_get_username_from_payload_handler",
+    "JWT_DECODE_HANDLER": "api.utils.jwt_decode_token",
+    "JWT_ALGORITHM": "RS256",
+    "JWT_AUDIENCE": "https://bookstore/api",
+    "JWT_ISSUER": "https://dev-ca7x87dj.us.auth0.com/",
+    "JWT_AUTH_HEADER_PREFIX": "Bearer",
 }
