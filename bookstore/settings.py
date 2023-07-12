@@ -71,6 +71,10 @@ if IS_HEROKU_APP:
     servers = os.environ["MEMCACHIER_SERVERS"]
     username = os.environ["MEMCACHIER_USERNAME"]
     password = os.environ["MEMCACHIER_PASSWORD"]
+
+    AUTH0_DOMAIN = os.environ["AUTH0_DOMAIN"]
+    AUTH0_CLIENT_ID = os.environ["AUTH0_CLIENT_ID"]
+    AUTH0_CLIENT_SECRET = os.environ["AUTH0_CLIENT_SECRET"]
 elif "vktr" in os.environ["PATH"]:
     env = environ.Env()
     environ.Env.read_env(".env")
@@ -108,6 +112,10 @@ else:
     servers = os.environ["MEMCACHIER_SERVERS"]
     username = os.environ["MEMCACHIER_USERNAME"]
     password = os.environ["MEMCACHIER_PASSWORD"]
+
+    AUTH0_DOMAIN = os.environ["AUTH0_DOMAIN"]
+    AUTH0_CLIENT_ID = os.environ["AUTH0_CLIENT_ID"]
+    AUTH0_CLIENT_SECRET = os.environ["AUTH0_CLIENT_SECRET"]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
