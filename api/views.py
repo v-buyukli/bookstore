@@ -73,7 +73,7 @@ def index(request):
 class BooksView(APIView):
     @method_decorator(cache_page(60 * 15))
     def get(self, request):
-        self.permission_classes = [AllowAny]
+        # self.permission_classes = [AllowAny]
         params = {"title", "author", "genre"}
         if not set(request.GET.keys()).issubset(params):
             return JsonResponse(
