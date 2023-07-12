@@ -89,6 +89,10 @@ elif "vktr" in os.environ["PATH"]:
     servers = env("MEMCACHIER_SERVERS")
     username = env("MEMCACHIER_USERNAME")
     password = env("MEMCACHIER_PASSWORD")
+
+    AUTH0_DOMAIN = env("AUTH0_DOMAIN")
+    AUTH0_CLIENT_ID = env("AUTH0_CLIENT_ID")
+    AUTH0_CLIENT_SECRET = env("AUTH0_CLIENT_SECRET")
 else:
     DATABASES = {
         "default": {

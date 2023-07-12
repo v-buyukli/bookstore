@@ -1,15 +1,19 @@
 import json
 from datetime import date
 from functools import wraps
+from urllib.parse import quote_plus, urlencode
 
 import jwt
-from django.http import HttpResponse, JsonResponse
+from authlib.integrations.django_client import OAuth
+from django.conf import settings
+from django.core.cache import cache
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.cache import cache_page
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -17,23 +21,54 @@ from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 
 
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def public(request):
-    return JsonResponse(
-        {
-            "message": "Hello from a public endpoint! You don't need to be authenticated to see this."
-        }
+oauth = OAuth()
+
+oauth.register(
+    "auth0",
+    client_id=settings.AUTH0_CLIENT_ID,
+    client_secret=settings.AUTH0_CLIENT_SECRET,
+    client_kwargs={
+        "scope": "openid profile email",
+    },
+    server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
+)
+
+
+def index(request):
+    s = request.session.get("user")
+    return render(
+        request,
+        "index.html",
+        context={
+            "session": s,
+            "pretty": json.dumps(s, indent=4),
+        },
     )
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def private(request):
-    return JsonResponse(
-        {
-            "message": "Hello from a private endpoint! You need to be authenticated to see this."
-        }
+def callback(request):
+    token = oauth.auth0.authorize_access_token(request)
+    request.session["user"] = token
+    return redirect(request.build_absolute_uri(reverse("index")))
+
+
+def login(request):
+    return oauth.auth0.authorize_redirect(
+        request, request.build_absolute_uri(reverse("callback"))
+    )
+
+
+def logout(request):
+    request.session.clear()
+    return redirect(
+        f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
+        + urlencode(
+            {
+                "returnTo": request.build_absolute_uri(reverse("index")),
+                "client_id": settings.AUTH0_CLIENT_ID,
+            },
+            quote_via=quote_plus,
+        ),
     )
 
 
@@ -66,14 +101,9 @@ def requires_scope(required_scope):
     return require_scope
 
 
-def index(request):
-    return HttpResponse("bookstore_api")
-
-
 class BooksView(APIView):
     @method_decorator(cache_page(60 * 15))
     def get(self, request):
-        # self.permission_classes = [AllowAny]
         params = {"title", "author", "genre"}
         if not set(request.GET.keys()).issubset(params):
             return JsonResponse(
@@ -118,6 +148,7 @@ class BooksView(APIView):
                 "publication_date", date.today()
             ),
         )
+        cache.clear()
         return JsonResponse(
             {"id": book.id, "msg": "book added successfully"},
             status=status.HTTP_201_CREATED,
@@ -178,6 +209,7 @@ class BookView(View):
                 book.publication_date = request_body["publication_date"]
 
             book.save()
+            cache.clear()
             return JsonResponse(
                 {"msg": "book updated successfully"}, status=status.HTTP_200_OK
             )
@@ -190,6 +222,7 @@ class BookView(View):
         try:
             book = Book.objects.get(id=id)
             book.delete()
+            cache.clear()
             return JsonResponse(
                 {"msg": "book deleted successfully"}, status=status.HTTP_200_OK
             )

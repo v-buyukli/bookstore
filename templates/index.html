@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bookstore API</title>
+</head>
+<body>
+    {% if session %}
+    <h1>Welcome {{session.userinfo.name}}!</h1>
+    <p><a href="{% url 'logout' %}">Logout</a></p>
+        Your photo: <br>
+        <img src="{{ session.userinfo.picture }}" alt="test2"> <br><br>
+    <div><pre>{{pretty}}</pre></div>
+    {% else %}
+    <h1>Welcome Guest</h1>
+    <p><a href="{% url 'login' %}">Login</a></p>
+    {% endif %}
+  </body>
+</html>
