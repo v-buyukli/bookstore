@@ -9,6 +9,7 @@ urlpatterns = [
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
     path("callback/", views.callback, name="callback"),
+    path("token/", views.token, name="token"),
     path("books", csrf_exempt(views.BooksView.as_view()), name="books"),
     path("books/<int:id>", csrf_exempt(views.BookView.as_view()), name="book"),
     path("authors", csrf_exempt(views.AuthorsView.as_view()), name="authors"),

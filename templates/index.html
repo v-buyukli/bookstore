@@ -7,13 +7,13 @@
 </head>
 <body>
     {% if session %}
-    <h1>Welcome {{session.userinfo.name}}!</h1>
+    <h3>Welcome {{session.userinfo.name}}!</h3>
     <p><a href="{% url 'logout' %}">Logout</a></p>
         Your photo: <br>
-        <img src="{{ session.userinfo.picture }}" alt="test2"> <br><br>
-    <div><pre>{{pretty}}</pre></div>
+        <img src="{{ session.userinfo.picture }}" alt="img"> <br><br>
+        <a href="{% url 'token' %}">Your TOKEN here</a> <br>
     {% else %}
-    <h1>Welcome Guest</h1>
+    <h3>Welcome Guest</h3>
     <p><a href="{% url 'login' %}">Login</a></p>
     {% endif %}
   </body>
