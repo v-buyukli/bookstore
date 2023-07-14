@@ -86,6 +86,16 @@ paths:
                   error:
                     type: string
                     example: invalid json
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Authentication credentials were not provided.
   /books/{id}:
     get:
       summary: Get a book by id
@@ -149,6 +159,16 @@ paths:
                   error:
                     type: string
                     example: invalid json
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Authentication credentials were not provided.
         '404':
           description: Book not found
           content:
@@ -254,6 +274,29 @@ paths:
                   error:
                     type: string
                     example: author not found
+  /token/:
+    get:
+      summary: Get user token
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: need registration
 components:
   schemas:
     Book:

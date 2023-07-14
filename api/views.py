@@ -11,13 +11,13 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Author, Book, Token
 from .serializers import AuthorSerializer, BookSerializer
 from .services import get_access_token
-
 
 oauth = OAuth()
 
@@ -73,13 +73,16 @@ def logout(request):
     )
 
 
+@api_view(["GET"])
 def token(request):
     s = request.session.get("user")
     if s:
         t = Token.objects.filter(sub=s["userinfo"]["sub"]).values().first()
-        return JsonResponse({"access_token": t["token"]})
+        return JsonResponse({"access_token": t["token"]}, status=status.HTTP_200_OK)
     else:
-        return JsonResponse({"msg": "need registration"})
+        return JsonResponse(
+            {"msg": "need registration"}, status=status.HTTP_401_UNAUTHORIZED
+        )
 
 
 class BooksView(APIView):
