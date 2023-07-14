@@ -34,8 +34,9 @@ oauth.register(
 
 def index(request):
     s = request.session.get("user")
-    if s and s["userinfo"]["sub"] not in Token.objects.values_list("sub", flat=True):
-        Token.objects.create(sub=s["userinfo"]["sub"], token=get_access_token())
+    if s:
+        if s["userinfo"]["sub"] not in Token.objects.values_list("sub", flat=True):
+            Token.objects.create(sub=s["userinfo"]["sub"], token=get_access_token())
 
     return render(
         request,
