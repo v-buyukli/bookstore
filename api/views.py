@@ -152,7 +152,10 @@ class BookView(APIView):
         try:
             book = Book.objects.get(id=id)
             try:
+                print(request.body)
+                print(request)
                 request_body = json.loads(request.body)
+                print(request_body)
             except ValueError:
                 return JsonResponse(
                     {"error": "invalid json"}, status=status.HTTP_400_BAD_REQUEST

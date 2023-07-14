@@ -165,7 +165,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticatedOrReadOnly",),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
@@ -178,6 +178,6 @@ JWT_AUTH = {
     "JWT_DECODE_HANDLER": "api.utils.jwt_decode_token",
     "JWT_ALGORITHM": "RS256",
     "JWT_AUDIENCE": "https://bookstore/api",
-    "JWT_ISSUER": "https://dev-ca7x87dj.us.auth0.com/",
+    "JWT_ISSUER": f"https://{AUTH0_DOMAIN}/",
     "JWT_AUTH_HEADER_PREFIX": "Bearer",
 }
