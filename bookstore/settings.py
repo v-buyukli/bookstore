@@ -75,6 +75,8 @@ if IS_HEROKU_APP:
     AUTH0_DOMAIN = os.environ["AUTH0_DOMAIN"]
     AUTH0_CLIENT_ID = os.environ["AUTH0_CLIENT_ID"]
     AUTH0_CLIENT_SECRET = os.environ["AUTH0_CLIENT_SECRET"]
+
+    AUTHORIZATION_HEADER = os.environ["AUTHORIZATION_HEADER"]
 elif "vktr" in os.environ["PATH"]:
     env = environ.Env()
     environ.Env.read_env(".env")
@@ -97,6 +99,8 @@ elif "vktr" in os.environ["PATH"]:
     AUTH0_DOMAIN = env("AUTH0_DOMAIN")
     AUTH0_CLIENT_ID = env("AUTH0_CLIENT_ID")
     AUTH0_CLIENT_SECRET = env("AUTH0_CLIENT_SECRET")
+
+    AUTHORIZATION_HEADER = env("AUTHORIZATION_HEADER")
 else:
     DATABASES = {
         "default": {
@@ -116,6 +120,9 @@ else:
     AUTH0_DOMAIN = os.environ["AUTH0_DOMAIN"]
     AUTH0_CLIENT_ID = os.environ["AUTH0_CLIENT_ID"]
     AUTH0_CLIENT_SECRET = os.environ["AUTH0_CLIENT_SECRET"]
+
+    AUTHORIZATION_HEADER = os.environ["AUTHORIZATION_HEADER"]
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -165,7 +172,9 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticatedOrReadOnly",),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",

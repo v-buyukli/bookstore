@@ -2,6 +2,7 @@ import json
 
 import jwt
 import requests
+from django.conf import settings
 
 
 def jwt_get_username_from_payload_handler(payload):
@@ -11,7 +12,7 @@ def jwt_get_username_from_payload_handler(payload):
 def jwt_decode_token(token):
     header = jwt.get_unverified_header(token)
     jwks = requests.get(
-        "https://{}/.well-known/jwks.json".format("dev-ca7x87dj.us.auth0.com")
+        "https://{}/.well-known/jwks.json".format(settings.AUTH0_DOMAIN)
     ).json()
     public_key = None
 
@@ -22,7 +23,7 @@ def jwt_decode_token(token):
     if public_key is None:
         raise Exception("Public key not found.")
 
-    issuer = "https://{}/".format("dev-ca7x87dj.us.auth0.com")
+    issuer = "https://{}/".format(settings.AUTH0_DOMAIN)
     return jwt.decode(
         token,
         public_key,
