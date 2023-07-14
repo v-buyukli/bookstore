@@ -3,6 +3,12 @@ from datetime import date
 from django.db import models
 
 
+class Token(models.Model):
+    sub = models.CharField()
+    token = models.CharField()
+    created = models.DateTimeField(auto_now_add=True, blank=True)
+
+
 class Author(models.Model):
     name = models.CharField(max_length=255)
 

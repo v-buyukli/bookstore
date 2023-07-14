@@ -2,9 +2,14 @@ import os
 
 import pytest
 import requests
+from django.conf import settings
 
 
 BASE_URL = os.getenv("API_URL", "https://bookstore0-80ca638e1301.herokuapp.com/api")
+HEADERS = {
+    "Content-Type": "application/json",
+    "authorization": settings.AUTHORIZATION_HEADER,
+}
 
 
 @pytest.fixture
@@ -19,10 +24,10 @@ def book_data():
 
 @pytest.fixture
 def created_book(book_data):
-    response = requests.post(f"{BASE_URL}/books", json=book_data)
+    response = requests.post(f"{BASE_URL}/books", json=book_data, headers=HEADERS)
     yield response
     book_id = response.json().get("id")
-    requests.delete(f"{BASE_URL}/books/{book_id}")
+    requests.delete(f"{BASE_URL}/books/{book_id}", headers=HEADERS)
 
 
 def test_create_book(created_book):
@@ -68,7 +73,9 @@ def test_update_book(created_book):
         "publication_date": "2023-01-01",
     }
 
-    response = requests.put(f"{BASE_URL}/books/{book_id}", json=updated_data)
+    response = requests.put(
+        f"{BASE_URL}/books/{book_id}", json=updated_data, headers=HEADERS
+    )
     assert response.status_code == 200
 
     response = requests.get(f"{BASE_URL}/books/{book_id}")
@@ -85,7 +92,7 @@ def test_delete_book(created_book):
     response = created_book
     book_id = response.json().get("id")
 
-    response = requests.delete(f"{BASE_URL}/books/{book_id}")
+    response = requests.delete(f"{BASE_URL}/books/{book_id}", headers=HEADERS)
     assert response.status_code == 200
 
     response = requests.get(f"{BASE_URL}/books/{book_id}")
