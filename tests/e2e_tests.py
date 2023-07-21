@@ -5,7 +5,8 @@ import requests
 from django.conf import settings
 
 
-BASE_URL = os.getenv("API_URL", "https://bookstore0-80ca638e1301.herokuapp.com/api")
+# BASE_URL = os.getenv("API_URL", "https://bookstore0-80ca638e1301.herokuapp.com/api")
+BASE_URL = os.getenv("API_URL", "http://127.0.0.1:3000/api")
 HEADERS = {
     "Content-Type": "application/json",
     "authorization": settings.AUTHORIZATION_HEADER,
