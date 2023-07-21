@@ -19,6 +19,7 @@ from .models import Author, Book, Token
 from .serializers import AuthorSerializer, BookSerializer
 from .services import get_access_token
 
+
 oauth = OAuth()
 
 oauth.register(
