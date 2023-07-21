@@ -130,6 +130,8 @@ class BooksView(APIView):
             title=serializer.validated_data["title"],
             author=author,
             genre=serializer.validated_data["genre"],
+            price=serializer.validated_data["price"],
+            quantity=serializer.validated_data["quantity"],
             publication_date=serializer.validated_data.get(
                 "publication_date", date.today()
             ),
@@ -163,7 +165,14 @@ class BookView(APIView):
                     {"error": "invalid json"}, status=status.HTTP_400_BAD_REQUEST
                 )
 
-            params = {"title", "author", "genre", "publication_date"}
+            params = {
+                "title",
+                "author",
+                "genre",
+                "price",
+                "quantity",
+                "publication_date",
+            }
             if not set(request_body.keys()).issubset(params):
                 return JsonResponse(
                     {"error": "invalid query params"},
@@ -178,6 +187,10 @@ class BookView(APIView):
                 book.author = author
             if "genre" in request_body:
                 book.genre = request_body["genre"]
+            if "price" in request_body:
+                book.price = request_body["price"]
+            if "quantity" in request_body:
+                book.quantity = request_body["quantity"]
             if "publication_date" in request_body:
                 try:
                     date.fromisoformat(request_body["publication_date"])
