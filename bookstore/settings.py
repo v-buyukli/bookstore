@@ -77,6 +77,7 @@ if IS_HEROKU_APP:
     AUTH0_CLIENT_SECRET = os.environ["AUTH0_CLIENT_SECRET"]
 
     AUTHORIZATION_HEADER = os.environ["AUTHORIZATION_HEADER"]
+    MONOBANK_API_KEY = os.environ["MONOBANK_API_KEY"]
 elif "vktr" in os.environ["PATH"]:
     env = environ.Env()
     environ.Env.read_env(".env")
@@ -101,6 +102,7 @@ elif "vktr" in os.environ["PATH"]:
     AUTH0_CLIENT_SECRET = env("AUTH0_CLIENT_SECRET")
 
     AUTHORIZATION_HEADER = env("AUTHORIZATION_HEADER")
+    MONOBANK_API_KEY = env("MONOBANK_API_KEY")
 else:
     DATABASES = {
         "default": {
@@ -122,7 +124,7 @@ else:
     AUTH0_CLIENT_SECRET = os.environ["AUTH0_CLIENT_SECRET"]
 
     AUTHORIZATION_HEADER = os.environ["AUTHORIZATION_HEADER"]
-
+    MONOBANK_API_KEY = os.environ["MONOBANK_API_KEY"]
 
 AUTH_PASSWORD_VALIDATORS = [
     {

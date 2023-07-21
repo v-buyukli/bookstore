@@ -18,6 +18,8 @@ def book_data():
         "title": "test_book",
         "author": "test_author",
         "genre": "genre1",
+        "price": 1000,
+        "quantity": 10,
         "publication_date": "2020-07-07",
     }
 
@@ -44,6 +46,8 @@ def test_create_book(created_book):
     assert response_body["title"] == "test_book"
     assert response_body["author"] == "test_author"
     assert response_body["genre"] == "genre1"
+    assert response_body["price"] == 1000
+    assert response_body["quantity"] == 10
     assert response_body["publication_date"] == "2020-07-07"
 
 
@@ -70,6 +74,8 @@ def test_update_book(created_book):
         "title": "updated_book",
         "author": "updated_author",
         "genre": "updated_genre",
+        "price": 2000,
+        "quantity": 5,
         "publication_date": "2023-01-01",
     }
 
@@ -85,6 +91,8 @@ def test_update_book(created_book):
     assert response_body["title"] == updated_data["title"]
     assert response_body["author"] == updated_data["author"]
     assert response_body["genre"] == updated_data["genre"]
+    assert response_body["price"] == updated_data["price"]
+    assert response_body["quantity"] == updated_data["quantity"]
     assert response_body["publication_date"] == updated_data["publication_date"]
 
 
@@ -107,6 +115,6 @@ def test_get_all_authors():
 
 
 def test_get_author_by_id():
-    response = requests.get(f"{BASE_URL}/authors/1")
+    response = requests.get(f"{BASE_URL}/authors/91")
     assert response.status_code == 200
     assert "author" in response.text

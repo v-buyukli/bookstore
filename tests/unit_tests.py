@@ -38,10 +38,12 @@ def api_client():
 
             if "books" in url:
                 return {
-                    book_fields[1].name: "test_b",
-                    book_fields[2].name: "test_a",
-                    book_fields[3].name: "test_g",
-                    book_fields[4].name: "2023-07-02",
+                    book_fields[3].name: "test_b",
+                    book_fields[4].name: "test_a",
+                    book_fields[5].name: "test_g",
+                    book_fields[6].name: 1000,
+                    book_fields[7].name: 10,
+                    book_fields[8].name: "2023-07-02",
                 }
             elif "authors" in url:
                 return {
@@ -60,6 +62,8 @@ def test_get_all_books(api_client):
     assert books["title"] == "test_b"
     assert books["author"] == "test_a"
     assert books["genre"] == "test_g"
+    assert books["price"] == 1000
+    assert books["quantity"] == 10
     assert books["publication_date"] == "2023-07-02"
 
 
@@ -72,11 +76,19 @@ def test_get_book_by_id(api_client):
     assert book["title"] == "test_b"
     assert book["author"] == "test_a"
     assert book["genre"] == "test_g"
+    assert book["price"] == 1000
+    assert book["quantity"] == 10
 
 
 def test_create_book(api_client):
     url = reverse("books")
-    new_book = {"title": "new_b", "author": "new_a", "genre": "new_g"}
+    new_book = {
+        "title": "new_b",
+        "author": "new_a",
+        "genre": "new_g",
+        "price": 2000,
+        "quantity": 5,
+    }
     response = api_client.post(url, new_book)
     assert response.response.status_code == 201
 
@@ -87,6 +99,8 @@ def test_update_book(api_client):
         "title": "upd_b",
         "author": "upd_a",
         "genre": "upd_g",
+        "price": 2000,
+        "quantity": 5,
         "publication_date": "2000-01-01",
     }
     response = api_client.put(url, upd_book)
