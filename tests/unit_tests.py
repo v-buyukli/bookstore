@@ -1,9 +1,25 @@
+import json
+import pathlib
 from unittest.mock import MagicMock
 
 import pytest
+import requests
+import responses
 from django.urls import reverse
 
 from api.models import Author, Book
+
+
+BASE_URL = "https://bookstore0-80ca638e1301.herokuapp.com/api"
+root = pathlib.Path(__file__).parent
+
+
+@pytest.fixture
+def mocked():
+    def inner(file_name):
+        return json.load(open(root / "fixtures" / file_name))
+
+    return inner
 
 
 @pytest.fixture
@@ -127,3 +143,37 @@ def test_get_author_by_id(api_client):
     assert response.response.status_code == 200
     author = response.json(url)
     assert author["name"] == "test_n"
+
+
+@responses.activate
+def test_get_order_info(mocked):
+    mocked_response = mocked("order_info.json")
+
+    responses.add(
+        responses.GET, f"{BASE_URL}/orders/3", json=mocked_response, status=200
+    )
+
+    r = requests.get(f"{BASE_URL}/orders/3")
+    assert r.status_code == 200
+
+    response_data = r.json()
+    assert response_data["total_price"] == 5000
+    assert response_data["invoice_id"] == "2307227joWLr4Da3Msdy"
+    assert response_data["id"] == 3
+    assert response_data["status"] == "success"
+
+
+@responses.activate
+def test_get_url_order(mocked):
+    order_data = mocked("order_input.json")
+    expected_result = mocked("order_url.json")
+
+    responses.add(
+        responses.POST,
+        f"{BASE_URL}/order/",
+        json=expected_result,
+    )
+
+    response = requests.post(f"{BASE_URL}/order/", json=order_data)
+    response_data = response.json()
+    assert response_data == expected_result
