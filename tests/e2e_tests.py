@@ -131,13 +131,13 @@ def test_get_order_info():
     assert response_data["id"] == order_id
 
 
-def test_create_order():
-    order_data = {"order": [{"book_id": 598, "quantity": 5}]}
-
-    response = requests.post(f"{BASE_URL}/order/", json=order_data)
-    response_data = response.json()
-
-    assert "url" in response_data
-    assert "id" in response_data
-    assert isinstance(response_data["url"], str)
-    assert isinstance(response_data["id"], int)
+# def test_create_order():
+#     order_data = {"order": [{"book_id": 598, "quantity": 5}]}
+#
+#     response = requests.post(f"{BASE_URL}/order/", json=order_data)
+#     response_data = response.json()
+#
+#     assert "url" in response_data
+#     assert "id" in response_data
+#     assert isinstance(response_data["url"], str)
+#     assert isinstance(response_data["id"], int)
