@@ -4,6 +4,7 @@ import hashlib
 import ecdsa
 import requests
 from django.conf import settings
+from django.core.cache import cache
 from django.http import JsonResponse
 from rest_framework import status
 
@@ -77,6 +78,7 @@ def create_order(order_data, webhook_url):
         book = Book.objects.get(id=order_item["book_id"].id)
         book.quantity -= order_item["quantity"]
         book.save()
+    cache.clear()
 
     url = r.json()["pageUrl"]
     return {"url": url, "id": order.id}
