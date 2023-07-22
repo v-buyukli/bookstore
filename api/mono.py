@@ -13,7 +13,7 @@ from api.models import Order, OrderItem, Book
 
 def create_order(order_data, webhook_url):
     for order_item in order_data:
-        book_id = order_item["book_id"]
+        book_id = order_item["book_id"].id
         quantity = order_item["quantity"]
         try:
             book = Book.objects.get(id=book_id)
@@ -75,7 +75,7 @@ def create_order(order_data, webhook_url):
     order.save()
 
     for order_item in order_data:
-        book = Book.objects.get(id=order_item["book_id"])
+        book = Book.objects.get(id=order_item["book_id"].id)
         book.quantity -= order_item["quantity"]
         book.save()
     cache.clear()
