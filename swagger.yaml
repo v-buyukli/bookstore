@@ -1,14 +1,20 @@
 openapi: 3.0.0
+
 info:
   title: bookstore_api
   description: bookstore_api_page
   version: 1.0.0
+
 servers:
   - url: https://bookstore0-80ca638e1301.herokuapp.com/api
+
 paths:
+
   /books:
     get:
       summary: Get books
+      tags:
+        - Books
       parameters:
         - name: title
           in: query
@@ -54,8 +60,11 @@ paths:
                   error:
                     type: string
                     example: no books found by filters
+
     post:
       summary: Add a new book
+      tags:
+        - Books
       requestBody:
         required: true
         content:
@@ -96,9 +105,12 @@ paths:
                   detail:
                     type: string
                     example: Authentication credentials were not provided.
+
   /books/{id}:
     get:
       summary: Get a book by id
+      tags:
+        - Books
       parameters:
         - name: id
           in: path
@@ -123,8 +135,11 @@ paths:
                   error:
                     type: string
                     example: book not found
+
     put:
       summary: Update a book by id
+      tags:
+        - Books
       parameters:
         - name: id
           in: path
@@ -179,8 +194,11 @@ paths:
                   error:
                     type: string
                     example: book not found
+
     delete:
       summary: Delete a book by id
+      tags:
+        - Books
       parameters:
         - name: id
           in: path
@@ -209,9 +227,39 @@ paths:
                   error:
                     type: string
                     example: book not found
+
+  /order/:
+      post:
+        tags:
+          - Payment
+        summary: Place order
+        requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+              examples:
+                "Buy one book":
+                  value:
+                    order:
+                      [ { "book_id": 10, "quantity": 1 } ]
+                "Buy several books":
+                  value:
+                    order:
+                      [ { "book_id": 15, "quantity": 1 }, { "book_id": 50, "quantity": 2 } ]
+        responses:
+          "200":
+            description: Place order for a book
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/OrderResponse"
+
   /authors:
     get:
       summary: Get authors
+      tags:
+        - Authors
       parameters:
         - name: name
           in: query
@@ -247,9 +295,12 @@ paths:
                   error:
                     type: string
                     example: no authors found by filters
+
   /authors/{id}:
     get:
       summary: Get an author by id
+      tags:
+        - Authors
       parameters:
         - name: id
           in: path
@@ -274,9 +325,12 @@ paths:
                   error:
                     type: string
                     example: author not found
+
   /token/:
     get:
       summary: Get user token
+      tags:
+        - Token
       responses:
         '200':
           description: OK
@@ -297,8 +351,10 @@ paths:
                   msg:
                     type: string
                     example: need registration
+
 components:
   schemas:
+
     Book:
       type: object
       properties:
@@ -318,17 +374,28 @@ components:
           type: string
           description: book genre
           example: out_genre
+        price:
+          type: integer
+          description: book price
+          example: 1000
+        quantity:
+          type: integer
+          description: book quantity
+          example: 10
         publication_date:
           type: string
           format: date
           description: book publication_date
           example: 2000-10-10
+
     BookInput:
       type: object
       required:
         - title
         - author
         - genre
+        - price
+        - quantity
       properties:
         title:
           type: string
@@ -342,11 +409,20 @@ components:
           type: string
           description: book genre
           example: add_genre
+        price:
+          type: integer
+          description: book price
+          example: 1000
+        quantity:
+          type: integer
+          description: book quantity
+          example: 10
         publication_date:
           type: string
           format: date
           description: book publication_date
           example: 2023-01-01
+
     Author:
       type: object
       properties:
@@ -358,3 +434,30 @@ components:
           type: string
           description: author name
           example: out_author
+
+    Order:
+      type: object
+      required:
+        - order
+      properties:
+        order:
+          type: array
+          items:
+            type: object
+            required:
+              - book_id
+              - quantity
+            properties:
+              book_id:
+                type: integer
+                example: 50
+              quantity:
+                type: integer
+                example: 2
+
+    OrderResponse:
+      type: object
+      properties:
+        order_id:
+          type: integer
+          example: 50
