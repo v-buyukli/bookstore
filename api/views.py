@@ -10,13 +10,20 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from rest_framework import status
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Author, Book, Token
-from .serializers import AuthorSerializer, BookSerializer
+from .models import Author, Book, Token, Order, MonoSettings
+from .mono import create_order, verify_signature
+from .serializers import (
+    AuthorSerializer,
+    BookSerializer,
+    OrderSerializer,
+    OrderModelSerializer,
+    MonoCallbackSerializer,
+)
 from .services import get_access_token
 
 
@@ -264,3 +271,53 @@ class AuthorView(APIView):
             return JsonResponse(
                 {"error": "author not found"}, status=status.HTTP_404_NOT_FOUND
             )
+
+
+class OrdersViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    queryset = Order.objects.all().order_by("-id")
+    serializer_class = OrderModelSerializer
+
+
+class OrderView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        order = OrderSerializer(data=request.data)
+        order.is_valid(raise_exception=True)
+        webhook_url = request.build_absolute_uri(reverse("mono_callback"))
+        order_data = create_order(order.validated_data["order"], webhook_url)
+        return Response(order_data)
+
+
+class OrderCallbackView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        public_key = MonoSettings.get_token()
+
+        if not verify_signature(
+            public_key, request.headers.get("X-Sign"), request.body
+        ):
+            return Response(
+                {"status": "signature mismatch"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        callback = MonoCallbackSerializer(data=request.data)
+        callback.is_valid(raise_exception=True)
+
+        try:
+            order = Order.objects.get(id=callback.validated_data["reference"])
+        except Order.DoesNotExist:
+            return Response(
+                {"status": "order not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if order.invoice_id != callback.validated_data["invoiceId"]:
+            return Response(
+                {"status": "invoiceId mismatch"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        order.status = callback.validated_data["status"]
+        order.save()
+        return Response({"status": "ok"})
