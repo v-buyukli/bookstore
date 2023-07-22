@@ -39,8 +39,8 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Book'
-        '400':
+                  $ref: "#/components/schemas/Book"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -50,7 +50,7 @@ paths:
                   error:
                     type: string
                     example: invalid query params
-        '404':
+        "404":
           description: Not Found
           content:
             application/json:
@@ -70,9 +70,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BookInput'
+              $ref: "#/components/schemas/BookInput"
       responses:
-        '201':
+        "201":
           description: Created
           content:
             application/json:
@@ -85,7 +85,7 @@ paths:
                   msg:
                     type: string
                     example: book added successfully
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -95,7 +95,7 @@ paths:
                   error:
                     type: string
                     example: invalid json
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -119,13 +119,13 @@ paths:
             type: integer
           description: id of the book
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Book'
-        '404':
+                $ref: "#/components/schemas/Book"
+        "404":
           description: Not Found
           content:
             application/json:
@@ -152,9 +152,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BookInput'
+              $ref: "#/components/schemas/BookInput"
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -164,7 +164,7 @@ paths:
                   msg:
                     type: string
                     example: book updated successfully
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -174,7 +174,7 @@ paths:
                   error:
                     type: string
                     example: invalid json
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -184,7 +184,7 @@ paths:
                   detail:
                     type: string
                     example: Authentication credentials were not provided.
-        '404':
+        "404":
           description: Book not found
           content:
             application/json:
@@ -254,6 +254,26 @@ paths:
               application/json:
                 schema:
                   $ref: "#/components/schemas/OrderResponse"
+          "400":
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: quantity must be greater than 0
+          "404":
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: book not found
 
   /authors:
     get:
@@ -267,7 +287,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -275,7 +295,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Author'
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -285,7 +305,7 @@ paths:
                   error:
                     type: string
                     example: invalid query params
-        '404':
+        "404":
           description: Authors not found
           content:
             application/json:
@@ -309,13 +329,13 @@ paths:
             type: integer
           description: id of the author
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Author'
-        '404':
+                $ref: "#/components/schemas/Author"
+        "404":
           description: Not Found
           content:
             application/json:
@@ -332,7 +352,7 @@ paths:
       tags:
         - Token
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -341,7 +361,7 @@ paths:
                 properties:
                   access_token:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -461,3 +481,6 @@ components:
         order_id:
           type: integer
           example: 50
+        url:
+          type: string
+          example: https://pay.mbnk.biz/1234567joWLr4Da3Msdy

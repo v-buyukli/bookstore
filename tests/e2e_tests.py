@@ -118,3 +118,26 @@ def test_get_author_by_id():
     response = requests.get(f"{BASE_URL}/authors/91")
     assert response.status_code == 200
     assert "author" in response.text
+
+
+def test_get_order_info():
+    order_id = 3
+    response = requests.get(f"{BASE_URL}/orders/{order_id}")
+    assert response.status_code == 200
+
+    response_data = response.json()
+    assert response_data["total_price"] == 5000
+    assert response_data["invoice_id"] == "2307227joWLr4Da3Msdy"
+    assert response_data["id"] == order_id
+
+
+def test_create_order():
+    order_data = {"order": [{"book_id": 598, "quantity": 5}]}
+
+    response = requests.post(f"{BASE_URL}/order/", json=order_data)
+    response_data = response.json()
+
+    assert "url" in response_data
+    assert "id" in response_data
+    assert isinstance(response_data["url"], str)
+    assert isinstance(response_data["id"], int)

@@ -4,11 +4,33 @@ import hashlib
 import ecdsa
 import requests
 from django.conf import settings
+from django.http import JsonResponse
+from rest_framework import status
 
-from api.models import Order, OrderItem
+from api.models import Order, OrderItem, Book
 
 
 def create_order(order_data, webhook_url):
+    for order_item in order_data:
+        book_id = order_item["book_id"]
+        quantity = order_item["quantity"]
+        try:
+            book = Book.objects.get(id=book_id)
+            if quantity < 1:
+                return JsonResponse(
+                    {"error": "quantity must be greater than 0"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if book.quantity < quantity:
+                return JsonResponse(
+                    {"error": f"available quantity = {book.quantity}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except Book.DoesNotExist:
+            return JsonResponse(
+                {"error": "book not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
     basketOrder = []
     order_items = []
     amount = 0
@@ -50,6 +72,11 @@ def create_order(order_data, webhook_url):
     r.raise_for_status()
     order.invoice_id = r.json()["invoiceId"]
     order.save()
+
+    for order_item in order_data:
+        book = Book.objects.get(id=order_item["book_id"])
+        book.quantity -= order_item["quantity"]
+        book.save()
 
     url = r.json()["pageUrl"]
     return {"url": url, "id": order.id}

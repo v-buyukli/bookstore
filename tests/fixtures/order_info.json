@@ -1,0 +1,10 @@
+{
+    "total_price": 5000,
+    "created_at": "2023-07-22T11:34:11.896901Z",
+    "invoice_id": "2307227joWLr4Da3Msdy",
+    "id": 3,
+    "books": [
+        598
+    ],
+    "status": "success"
+}
