@@ -31,15 +31,45 @@ paths:
           description: filter books by genre
           schema:
             type: string
+        - name: publication_date
+          in: query
+          description: by publication date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: search
+          in: query
+          description: search for books by title (case-insensitive, partial match)
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: number of items per page
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: number of items to skip
+          schema:
+            type: integer
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Book"
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                  previous:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Book"
         "400":
           description: Bad Request
           content:
@@ -207,7 +237,7 @@ paths:
             type: integer
           description: id of the book to delete
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
@@ -217,7 +247,7 @@ paths:
                   msg:
                     type: string
                     example: book deleted successfully
-        '404':
+        "404":
           description: Book not found
           content:
             application/json:
@@ -283,18 +313,42 @@ paths:
       parameters:
         - name: name
           in: query
-          description: filter books by name
+          description: filter authors by name
           schema:
             type: string
+        - name: search
+          in: query
+          description: search for authors by name (case-insensitive, partial match)
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: number of items per page
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: number of items to skip
+          schema:
+            type: integer
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Author'
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  next:
+                    type: string
+                  previous:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Author'
         "400":
           description: Bad Request
           content:

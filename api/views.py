@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, datetime
 from urllib.parse import quote_plus, urlencode
 
 from authlib.integrations.django_client import OAuth
@@ -10,8 +10,10 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from rest_framework import permissions, status, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import api_view
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -95,9 +97,22 @@ def token(request):
 
 
 class BooksView(APIView):
+    pagination_class = LimitOffsetPagination
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ["publication_date"]
+    search_fields = ["title"]
+
     @method_decorator(cache_page(60 * 15))
     def get(self, request):
-        params = {"title", "author", "genre"}
+        params = {
+            "title",
+            "author",
+            "genre",
+            "limit",
+            "offset",
+            "publication_date",
+            "search",
+        }
         if not set(request.GET.keys()).issubset(params):
             return JsonResponse(
                 {"error": "invalid query params"}, status=status.HTTP_400_BAD_REQUEST
@@ -110,6 +125,8 @@ class BooksView(APIView):
         title = request.GET.get("title")
         author = request.GET.get("author")
         genre = request.GET.get("genre")
+        publication_date = request.GET.get("publication_date")
+        search = request.GET.get("search")
 
         if title:
             queryset = queryset.filter(title__icontains=title)
@@ -117,13 +134,26 @@ class BooksView(APIView):
             queryset = queryset.filter(author__name__icontains=author)
         if genre:
             queryset = queryset.filter(genre__icontains=genre)
+        if publication_date:
+            try:
+                formatted_date = datetime.strptime(publication_date, "%Y-%m-%d").date()
+                queryset = queryset.filter(publication_date=formatted_date)
+            except ValueError:
+                return JsonResponse(
+                    {"error": "invalid publication_date format"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        if search:
+            queryset = queryset.filter(title__icontains=search)
         if not queryset.exists():
             return JsonResponse(
                 {"msg": "no books found by filters"}, status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = BookSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        paginator = self.pagination_class()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        serializer = BookSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         serializer = BookSerializer(data=request.data)
@@ -233,9 +263,13 @@ class BookView(APIView):
 
 
 class AuthorsView(APIView):
+    pagination_class = LimitOffsetPagination
+    filter_backends = [DjangoFilterBackend]
+    search_fields = ["name"]
+
     @method_decorator(cache_page(60 * 15))
     def get(self, request):
-        params = {"name"}
+        params = {"name", "limit", "offset"}
         if not set(request.GET.keys()).issubset(params):
             return JsonResponse(
                 {"error": "invalid query params"}, status=status.HTTP_400_BAD_REQUEST
@@ -248,16 +282,24 @@ class AuthorsView(APIView):
                 )
 
         name = request.GET.get("name")
+        search = request.GET.get("search")
+
         if name:
             queryset = queryset.filter(name__icontains=name)
+        if search:
+            queryset = queryset.filter(name__icontains=search)
 
         if not queryset.exists():
             return JsonResponse(
                 {"msg": "no authors found by filters"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        serializer = AuthorSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        paginator = self.pagination_class()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+
+        serializer = AuthorSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class AuthorView(APIView):
@@ -277,6 +319,7 @@ class OrdersViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     queryset = Order.objects.all().order_by("-id")
     serializer_class = OrderModelSerializer
+    pagination_class = LimitOffsetPagination
 
 
 class OrderView(APIView):
