@@ -12,6 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -95,9 +96,11 @@ def token(request):
 
 
 class BooksView(APIView):
+    pagination_class = LimitOffsetPagination
+
     @method_decorator(cache_page(60 * 15))
     def get(self, request):
-        params = {"title", "author", "genre"}
+        params = {"title", "author", "genre", "limit", "offset"}
         if not set(request.GET.keys()).issubset(params):
             return JsonResponse(
                 {"error": "invalid query params"}, status=status.HTTP_400_BAD_REQUEST
@@ -122,8 +125,10 @@ class BooksView(APIView):
                 {"msg": "no books found by filters"}, status=status.HTTP_404_NOT_FOUND
             )
 
-        serializer = BookSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        paginator = self.pagination_class()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+        serializer = BookSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         serializer = BookSerializer(data=request.data)
@@ -233,9 +238,11 @@ class BookView(APIView):
 
 
 class AuthorsView(APIView):
+    pagination_class = LimitOffsetPagination
+
     @method_decorator(cache_page(60 * 15))
     def get(self, request):
-        params = {"name"}
+        params = {"name", "limit", "offset"}
         if not set(request.GET.keys()).issubset(params):
             return JsonResponse(
                 {"error": "invalid query params"}, status=status.HTTP_400_BAD_REQUEST
@@ -256,8 +263,12 @@ class AuthorsView(APIView):
                 {"msg": "no authors found by filters"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        serializer = AuthorSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        paginator = self.pagination_class()
+        paginated_queryset = paginator.paginate_queryset(queryset, request)
+
+        serializer = AuthorSerializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class AuthorView(APIView):
@@ -277,6 +288,7 @@ class OrdersViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     queryset = Order.objects.all().order_by("-id")
     serializer_class = OrderModelSerializer
+    pagination_class = LimitOffsetPagination
 
 
 class OrderView(APIView):
