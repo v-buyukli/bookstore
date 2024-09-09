@@ -6,8 +6,8 @@ from django.db import models
 
 
 class Token(models.Model):
-    sub = models.CharField()
-    token = models.CharField()
+    sub = models.CharField(max_length=255)
+    token = models.CharField(max_length=512)
     created = models.DateTimeField(auto_now_add=True, blank=True)
 
 
