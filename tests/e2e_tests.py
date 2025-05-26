@@ -126,10 +126,13 @@ def test_get_author_by_id():
     response = requests.get(f"{settings.API_URL}/authors")
     authors = response.json()["results"]
     last_author_id = authors[-1]["id"]
+
     response = requests.get(f"{settings.API_URL}/authors/{last_author_id}")
     assert response.status_code == 200
-    assert "author" in response.text
 
+    response_data = response.json()
+    assert "name" in response_data
+    assert isinstance(response_data["name"], str)
 
 def test_create_order(created_order):
     response_data = created_order.json()
