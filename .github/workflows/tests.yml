@@ -23,9 +23,17 @@ jobs:
       MONOBANK_API_KEY: ${{ secrets.MONOBANK_API_KEY }}
     steps:
       - uses: actions/checkout@master
-      - name: run tests
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run migrations
+        run: python manage.py migrate
+
+      - name: Start Django server in background
         run: |
-          pip install -r requirements.txt
-          python manage.py migrate
-          python manage.py runserver 127.0.0.1:3000
-          pytest
+          nohup python manage.py runserver 127.0.0.1:3000 &
+          sleep 5
+
+      - name: Run tests
+        run: pytest
