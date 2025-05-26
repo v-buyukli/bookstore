@@ -6,6 +6,8 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     env:
+      IS_LOCAL: ${{ secrets.IS_LOCAL }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
       POSTGRES_NAME: ${{ secrets.POSTGRES_NAME }}
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -24,4 +26,5 @@ jobs:
       - name: run tests
         run: |
           pip install -r requirements.txt
+          python manage.py migrate
           pytest
