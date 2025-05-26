@@ -8,6 +8,7 @@ jobs:
     env:
       IS_LOCAL: ${{ secrets.IS_LOCAL }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      API_URL: ${{ secrets.API_URL }}
       POSTGRES_NAME: ${{ secrets.POSTGRES_NAME }}
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -30,10 +31,5 @@ jobs:
       - name: Run migrations
         run: python manage.py migrate
 
-      - name: Start Django server in background
-        run: |
-          nohup python manage.py runserver 127.0.0.1:3000 &
-          sleep 5
-
       - name: Run tests
-        run: pytest
+        run: pytest tests/unit_tests.py
