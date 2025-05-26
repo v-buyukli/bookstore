@@ -6,7 +6,7 @@ info:
   version: 1.0.0
 
 servers:
-  - url: https://bookstore0-80ca638e1301.herokuapp.com/api
+  - url: http://127.0.0.1:3000/api
 
 paths:
 

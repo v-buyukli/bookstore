@@ -6,6 +6,9 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     env:
+      IS_LOCAL: ${{ secrets.IS_LOCAL }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      API_URL: ${{ secrets.API_URL }}
       POSTGRES_NAME: ${{ secrets.POSTGRES_NAME }}
       POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -21,7 +24,12 @@ jobs:
       MONOBANK_API_KEY: ${{ secrets.MONOBANK_API_KEY }}
     steps:
       - uses: actions/checkout@master
-      - name: run tests
-        run: |
-          pip install -r requirements.txt
-          pytest
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run migrations
+        run: python manage.py migrate
+
+      - name: Run tests
+        run: pytest tests/unit_tests.py

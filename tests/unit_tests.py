@@ -6,11 +6,10 @@ import pytest
 import requests
 import responses
 from django.urls import reverse
-
+from django.conf import settings
 from api.models import Author, Book
 
 
-BASE_URL = "https://bookstore0-80ca638e1301.herokuapp.com/api"
 root = pathlib.Path(__file__).parent
 
 
@@ -150,10 +149,10 @@ def test_get_order_info(mocked):
     mocked_response = mocked("order_info.json")
 
     responses.add(
-        responses.GET, f"{BASE_URL}/orders/3", json=mocked_response, status=200
+        responses.GET, f"{settings.API_URL}/orders/3", json=mocked_response, status=200
     )
 
-    r = requests.get(f"{BASE_URL}/orders/3")
+    r = requests.get(f"{settings.API_URL}/orders/3")
     assert r.status_code == 200
 
     response_data = r.json()
@@ -170,10 +169,10 @@ def test_get_url_order(mocked):
 
     responses.add(
         responses.POST,
-        f"{BASE_URL}/order/",
+        f"{settings.API_URL}/order/",
         json=expected_result,
     )
 
-    response = requests.post(f"{BASE_URL}/order/", json=order_data)
+    response = requests.post(f"{settings.API_URL}/order/", json=order_data)
     response_data = response.json()
     assert response_data == expected_result

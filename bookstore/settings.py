@@ -3,23 +3,17 @@ from pathlib import Path
 
 import dj_database_url
 import environ
+from decouple import config, Csv
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-6dhzial(1f6ed794%&%y)hxr7s(@3#q93bfby1os02yncx&%i%"
+SECRET_KEY = config("SECRET_KEY")
 
 IS_HEROKU_APP = "DYNO" in os.environ and not "CI" in os.environ
+IS_LOCAL = config("IS_LOCAL", default=False, cast=bool)
 
-if not IS_HEROKU_APP:
-    DEBUG = True
-
-if IS_HEROKU_APP:
-    ALLOWED_HOSTS = ["*"]
-else:
-    ALLOWED_HOSTS = []
-    ALLOWED_HOSTS.append("0.0.0.0")
-    ALLOWED_HOSTS.append("127.0.0.1")
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="127.0.0.1,0.0.0.0", cast=Csv())
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -68,60 +62,36 @@ WSGI_APPLICATION = "bookstore.wsgi.application"
 
 if IS_HEROKU_APP:
     DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}
-
-    servers = os.environ["MEMCACHIER_SERVERS"]
-    username = os.environ["MEMCACHIER_USERNAME"]
-    password = os.environ["MEMCACHIER_PASSWORD"]
-
-    AUTH0_DOMAIN = os.environ["AUTH0_DOMAIN"]
-    AUTH0_CLIENT_ID = os.environ["AUTH0_CLIENT_ID"]
-    AUTH0_CLIENT_SECRET = os.environ["AUTH0_CLIENT_SECRET"]
-
-    AUTHORIZATION_HEADER = os.environ["AUTHORIZATION_HEADER"]
-    MONOBANK_API_KEY = os.environ["MONOBANK_API_KEY"]
-elif "vktr" in os.environ["PATH"]:
-    env = environ.Env()
-    environ.Env.read_env(".env")
-
+elif IS_LOCAL:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
-
-    servers = env("MEMCACHIER_SERVERS")
-    username = env("MEMCACHIER_USERNAME")
-    password = env("MEMCACHIER_PASSWORD")
-
-    AUTH0_DOMAIN = env("AUTH0_DOMAIN")
-    AUTH0_CLIENT_ID = env("AUTH0_CLIENT_ID")
-    AUTH0_CLIENT_SECRET = env("AUTH0_CLIENT_SECRET")
-
-    AUTHORIZATION_HEADER = env("AUTHORIZATION_HEADER")
-    MONOBANK_API_KEY = env("MONOBANK_API_KEY")
 else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ["POSTGRES_NAME"],
-            "USER": os.environ["POSTGRES_USER"],
-            "PASSWORD": os.environ["POSTGRES_PASSWORD"],
-            "HOST": os.environ["POSTGRES_HOST"],
-            "PORT": os.environ["POSTGRES_PORT"],
+            "NAME": config("POSTGRES_NAME"),
+            "USER": config("POSTGRES_USER"),
+            "PASSWORD": config("POSTGRES_PASSWORD"),
+            "HOST": config("POSTGRES_HOST", default="localhost"),
+            "PORT": config("POSTGRES_PORT", default="5432"),
         }
     }
 
-    servers = os.environ["MEMCACHIER_SERVERS"]
-    username = os.environ["MEMCACHIER_USERNAME"]
-    password = os.environ["MEMCACHIER_PASSWORD"]
-
-    AUTH0_DOMAIN = os.environ["AUTH0_DOMAIN"]
-    AUTH0_CLIENT_ID = os.environ["AUTH0_CLIENT_ID"]
-    AUTH0_CLIENT_SECRET = os.environ["AUTH0_CLIENT_SECRET"]
-
-    AUTHORIZATION_HEADER = os.environ["AUTHORIZATION_HEADER"]
-    MONOBANK_API_KEY = os.environ["MONOBANK_API_KEY"]
+CACHES = {
+    "default": {
+        "BACKEND": "django_bmemcached.memcached.BMemcached",
+        "TIMEOUT": None,
+        "LOCATION": config("MEMCACHIER_SERVERS", cast=Csv()),
+        "OPTIONS": {
+            "username": config("MEMCACHIER_USERNAME"),
+            "password": config("MEMCACHIER_PASSWORD"),
+        },
+    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -139,11 +109,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "en-us"
-
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -152,18 +119,6 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ORIGIN_ALLOW_ALL = True
-
-CACHES = {
-    "default": {
-        "BACKEND": "django_bmemcached.memcached.BMemcached",
-        "TIMEOUT": None,
-        "LOCATION": servers,
-        "OPTIONS": {
-            "username": username,
-            "password": password,
-        },
-    }
-}
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -184,6 +139,11 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 
+AUTH0_DOMAIN = config("AUTH0_DOMAIN")
+AUTH0_CLIENT_ID = config("AUTH0_CLIENT_ID")
+AUTH0_CLIENT_SECRET = config("AUTH0_CLIENT_SECRET")
+AUTHORIZATION_HEADER = config("AUTHORIZATION_HEADER")
+
 JWT_AUTH = {
     "JWT_PAYLOAD_GET_USERNAME_HANDLER": "api.utils.jwt_get_username_from_payload_handler",
     "JWT_DECODE_HANDLER": "api.utils.jwt_decode_token",
@@ -192,3 +152,6 @@ JWT_AUTH = {
     "JWT_ISSUER": f"https://{AUTH0_DOMAIN}/",
     "JWT_AUTH_HEADER_PREFIX": "Bearer",
 }
+
+API_URL = config("API_URL", default="http://127.0.0.1:3000/api")
+MONOBANK_API_KEY = config("MONOBANK_API_KEY")
