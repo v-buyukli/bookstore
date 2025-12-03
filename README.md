@@ -15,5 +15,8 @@
   - `python manage.py runserver 127.0.0.1:3000`  
 
 
+- **Note**: this repository is used for demonstration and testing purposes only.
+
+
 - **Built With**: Django, DRF, Postgres, Heroku, Auth0, Docker Compose, MemCachier, 
 Monobank API, Pytest, GitHub Actions  
